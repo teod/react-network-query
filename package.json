@@ -1,19 +1,34 @@
 {
   "name": "react-network-query",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "compile": "rimraf dist/*; tsc",
+    "prepublish": "npm run compile",
+    "test": "react-scripts test"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/teod/react-network-query.git"
   },
-  "author": "Teodor Druta",
+  "author": "Teodor Druta <teodruta@gmail.com.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/teod/react-network-query/issues"
   },
-  "homepage": "https://github.com/teod/react-network-query#readme"
+  "homepage": "https://github.com/teod/react-network-query#readme",
+  "dependencies": {
+    "@types/jest": "24.0.15",
+    "@types/node": "12.6.8",
+    "@types/react": "16.8.23",
+    "axios": "^0.19.0",
+    "react": "^16.8.6",
+    "react-scripts": "3.0.1",
+    "tslint": "^5.18.0",
+    "typescript": "3.5.3"
+  },
+  "devDependencies": {
+    "rimraf": "^2.6.3"
+  }
 }
