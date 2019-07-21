@@ -1,22 +1,17 @@
 import React, { ReactElement, useState, useEffect } from 'react'
-import axios, { AxiosInstance } from 'axios'
 
-import { guidGenerator } from './utils'
-
-interface PersistentStorage {
-  setItem: (key: string, value: any) => void
-  getItem: (key: string) => any
-  removeItem: (key: string) => void
-}
+import { guidGenerator, fetchHandler } from './utils'
+import { PersistentStorage } from './types'
 
 interface Context {
-  fetch: AxiosInstance
+  requester: any
   url?: string
   key?: string
   updateKey?: (arg0?: string[]) => void
   persistentStorage?: PersistentStorage
   refetchForEndpoints?: string[] | null
   removeFetchEndpoint?: (arg0: string) => void
+  storageAsync?: boolean
 }
 
 interface Props {
@@ -25,6 +20,8 @@ interface Props {
   headers?: { [key: string]: string }
   persistentStorage?: PersistentStorage
   clearPersistentStorage?: boolean
+  requester?: any
+  storageAsync?: boolean
 }
 
 const initKey = guidGenerator()
@@ -39,20 +36,24 @@ const purgePersistentStorage = (persistentStorage: PersistentStorage) => {
   })
 }
 
+const getRequester = (requester: any) =>
+  requester === fetch ? fetchHandler : requester
+
 export const STORAGE_KEY = 'react-network-query'
 
 export const NetworkQueryContext = React.createContext<Context>({
-  fetch: axios.create(),
   key: initKey,
+  requester: fetch,
   url: '',
 })
 
 const NetworkQueryProvider = ({
   children,
   url = '',
-  headers = {},
   persistentStorage,
   clearPersistentStorage = false,
+  requester = fetch,
+  storageAsync = false,
 }: Props) => {
   const [key, setKey] = useState(initKey)
   const [refetchForEndpoints, setRefetchForEndpoints] = useState<
@@ -82,17 +83,12 @@ const NetworkQueryProvider = ({
   return (
     <NetworkQueryContext.Provider
       value={{
-        fetch: axios.create({
-          headers: {
-            ...headers,
-            'Content-Type': 'application/json',
-          },
-          timeout: 1000,
-        }),
         key,
         persistentStorage,
         refetchForEndpoints,
         removeFetchEndpoint,
+        requester: getRequester(requester),
+        storageAsync,
         updateKey,
         url,
       }}

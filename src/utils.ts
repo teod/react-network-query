@@ -1,3 +1,5 @@
+import { PersistentStorage } from './types'
+
 const isValidUrl = (str: string) => {
   try {
     // tslint:disable-next-line
@@ -77,4 +79,82 @@ export const guidGenerator = () => {
     S4() +
     S4()
   )
+}
+
+export const fetchHandler = (url: string, options: { [key: string]: any }) => {
+  const handleResponse = (response: any) => {
+    const { headers } = response
+    const contentType = headers.get('Content-Type')
+    const isJSON = contentType && contentType.indexOf('application/json') !== -1
+
+    if (response.ok) {
+      if (isJSON) {
+        return new Promise(resolve => {
+          response.json().then((data: any) =>
+            resolve({
+              data,
+            }),
+          )
+        })
+      }
+    } else {
+      if (isJSON) {
+        return response.json().then((jsonError: Error) => {
+          throw Error(JSON.stringify(jsonError))
+        })
+      }
+
+      throw Error(JSON.stringify(response))
+    }
+  }
+
+  return fetch(url, options).then(handleResponse)
+}
+
+export const getStorageItemSync = (
+  persistentStorage: PersistentStorage | undefined,
+  storageKeyPrefix: string,
+  storageKey: string,
+) => {
+  if (persistentStorage && persistentStorage.setItem) {
+    try {
+      return JSON.parse(
+        persistentStorage.getItem(`${storageKeyPrefix}${storageKey}`),
+      )
+    } catch (err) {
+      persistentStorage.removeItem(`${storageKeyPrefix}${storageKey}`)
+    }
+  }
+}
+
+export const setStorageItem = async (
+  persistentStorage: PersistentStorage | undefined,
+  storageKeyPrefix: string,
+  storageKey: string,
+  value: any,
+) => {
+  if (persistentStorage && persistentStorage.setItem) {
+    await persistentStorage.setItem(
+      `${storageKeyPrefix}${storageKey}`,
+      JSON.stringify(value),
+    )
+  }
+}
+
+export const getStorageItem = async (
+  persistentStorage: PersistentStorage | undefined,
+  storageKeyPrefix: string,
+  storageKey: string,
+) => {
+  if (persistentStorage && persistentStorage.setItem) {
+    try {
+      const persistentItem = await persistentStorage.getItem(
+        `${storageKeyPrefix}${storageKey}`,
+      )
+
+      return JSON.parse(persistentItem)
+    } catch (err) {
+      persistentStorage.removeItem(`${storageKeyPrefix}${storageKey}`)
+    }
+  }
 }

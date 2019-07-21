@@ -1,7 +1,14 @@
 import { useEffect, useState, useContext, ReactElement } from 'react'
 
 import { NetworkQueryContext, STORAGE_KEY } from './Provider'
-import { buildUrl, interpolateString, isObjectEmpty } from './utils'
+import {
+  buildUrl,
+  interpolateString,
+  isObjectEmpty,
+  getStorageItemSync,
+  getStorageItem,
+  setStorageItem,
+} from './utils'
 
 interface Variables {
   [key: string]: string | number
@@ -21,42 +28,26 @@ interface Props {
   endpoint: string
   variables?: Variables
   children: (arg0: Children) => ReactElement
-  headers?: { [key: string]: string }
-  onComplete?: (arg0: any) => void
+  fetchOptions?: { [key: string]: string | number | object }
+  onComplete?: (arg0?: any) => void
 }
 
 const Query = ({
   children,
   endpoint,
   variables,
-  headers,
+  fetchOptions,
   onComplete,
 }: Props) => {
   const {
-    fetch,
+    requester,
     url,
     key,
     persistentStorage,
     refetchForEndpoints,
     removeFetchEndpoint,
+    storageAsync,
   } = useContext(NetworkQueryContext)
-
-  const setStorageItem = (storageKey: string, value: any) => {
-    if (persistentStorage && persistentStorage.setItem) {
-      persistentStorage.setItem(
-        `${STORAGE_KEY}${storageKey}`,
-        JSON.stringify(value),
-      )
-    }
-  }
-
-  const getStorageItem = (storageKey: string) => {
-    if (persistentStorage && persistentStorage.setItem) {
-      return JSON.parse(
-        persistentStorage.getItem(`${STORAGE_KEY}${storageKey}`),
-      )
-    }
-  }
 
   const interpolatedEndpoint =
     variables && !isObjectEmpty(variables)
@@ -64,29 +55,48 @@ const Query = ({
       : endpoint
   const builtUrl = buildUrl(interpolatedEndpoint, url)
 
-  const storageData = getStorageItem(builtUrl)
+  const syncStorageData = !storageAsync
+    ? getStorageItemSync(persistentStorage, STORAGE_KEY, builtUrl)
+    : undefined
 
-  const [data, setData] = useState(storageData)
+  const [data, setData] = useState(syncStorageData)
   const [error, setError] = useState()
-  const [isLoading, setIsLoading] = useState(storageData ? false : true)
+  const [isLoading, setIsLoading] = useState(syncStorageData ? false : true)
   const [isRefetching, setIsRefetching] = useState(false)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
 
-  const config = !isObjectEmpty(headers) ? { headers } : undefined
+  const config = !isObjectEmpty(fetchOptions) ? fetchOptions : undefined
 
   const initFetch = async () => {
     try {
-      const response = await fetch.get(builtUrl, config)
+      // Restore async persistent storage
+      if (storageAsync && persistentStorage) {
+        const storageData = await getStorageItem(
+          persistentStorage,
+          STORAGE_KEY,
+          builtUrl,
+        )
+
+        setData(storageData)
+        setIsLoading(false)
+      }
+
+      const response = await requester(builtUrl, config)
+
       setData(response.data)
 
       if (typeof onComplete === 'function') {
         onComplete(response.data)
       }
 
-      setStorageItem(builtUrl, response.data)
+      setStorageItem(persistentStorage, STORAGE_KEY, builtUrl, response.data)
     } catch (err) {
       setError(err)
     } finally {
+      if (typeof onComplete === 'function') {
+        onComplete()
+      }
+
       setIsLoading(false)
     }
   }
@@ -95,10 +105,11 @@ const Query = ({
     setIsRefetching(true)
 
     try {
-      const response = await fetch.get(builtUrl, config)
+      const response = await requester(builtUrl, config)
+
       setData(response.data)
 
-      setStorageItem(builtUrl, response.data)
+      setStorageItem(persistentStorage, STORAGE_KEY, builtUrl, response.data)
 
       return response.data
     } catch (err) {
@@ -124,7 +135,22 @@ const Query = ({
 
       const loadMoreUrl = buildUrl(interpolatedLoadMoreEndpoint, url)
 
-      const loadMoreStorageData = getStorageItem(builtUrl)
+      let loadMoreStorageData: any
+
+      // Restore async persistent storage
+      if (storageAsync && persistentStorage) {
+        loadMoreStorageData = await getStorageItem(
+          persistentStorage,
+          STORAGE_KEY,
+          builtUrl,
+        )
+      } else if (!storageAsync) {
+        loadMoreStorageData = getStorageItemSync(
+          persistentStorage,
+          STORAGE_KEY,
+          builtUrl,
+        )
+      }
 
       if (loadMoreStorageData) {
         setData((state: any) =>
@@ -135,14 +161,15 @@ const Query = ({
         setIsLoadingMore(false)
       }
 
-      const response = await fetch.get(loadMoreUrl, config)
+      const response = await requester(loadMoreUrl, config)
+
       setData((state: any) =>
         Array.isArray(state)
           ? [...state, ...response.data]
           : { ...state, ...response.data },
       )
 
-      setStorageItem(loadMoreUrl, response.data)
+      setStorageItem(persistentStorage, STORAGE_KEY, loadMoreUrl, response.data)
 
       return response.data
     } catch (err) {
