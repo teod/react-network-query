@@ -142,3 +142,6 @@ The `<Mutation />` component also inherits all `UpdateArg Interface`, thye trigg
 | setItem    | `(key: string, value: any) => void` | Function for setting a single key -> value pair into persistent storage. |
 | getItem    |       `(key: string) => any`        | Function for retrieving data for a specific key from persistent storage. |
 | removeItem |       `(key: string) => void`       | Function for deleting data for a specific key from persistent storage.   |
+
+## Examples
+[React Web](/examples/react-web)

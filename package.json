@@ -1,7 +1,7 @@
 {
   "name": "react-network-query",
-  "version": "0.1.4",
-  "description": "",
+  "version": "0.1.5",
+  "description": "Declarative components for making network requests in react",
   "main": "dist/index.js",
   "scripts": {
     "compile": "rimraf dist/*; tsc",
