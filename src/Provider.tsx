@@ -22,7 +22,7 @@ interface Context {
 interface Props {
   children: ReactElement
   url?: string
-  headers?: object
+  headers?: { [key: string]: string }
   persistentStorage?: PersistentStorage
   clearPersistentStorage?: boolean
 }
