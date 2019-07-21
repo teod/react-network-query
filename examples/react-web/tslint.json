@@ -1,0 +1,15 @@
+{
+  "defaultSeverity": "error",
+  "extends": ["tslint:recommended"],
+  "jsRules": {},
+  "rules": {
+    "semicolon": [true, "never"],
+    "quotemark": [true, "single", "jsx-double"],
+    "interface-name": [true, "never-prefix"],
+    "ordered-imports": false,
+    "arrow-parens": [true, "ban-single-arg-parens"],
+    "no-bitwise": false,
+    "react-hooks/exhaustive-deps": false
+  },
+  "rulesDirectory": []
+}
