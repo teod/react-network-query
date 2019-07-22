@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext, ReactElement } from 'react'
+import { useEffect, useState, useContext, useRef, ReactElement } from 'react'
 
 import { NetworkQueryContext, STORAGE_KEY } from './Provider'
 import {
@@ -27,9 +27,10 @@ interface Children {
 interface Props {
   endpoint: string
   variables?: Variables
-  children: (arg0: Children) => ReactElement
+  children: (arg0: Children) => ReactElement | ReactElement[]
   fetchOptions?: { [key: string]: string | number | object }
   onComplete?: (arg0?: any) => void
+  refetchOnMount?: boolean
 }
 
 const Query = ({
@@ -38,6 +39,7 @@ const Query = ({
   variables,
   fetchOptions,
   onComplete,
+  refetchOnMount = false,
 }: Props) => {
   const {
     requester,
@@ -47,6 +49,8 @@ const Query = ({
     refetchForEndpoints,
     removeFetchEndpoint,
     storageAsync,
+    data,
+    setData,
   } = useContext(NetworkQueryContext)
 
   const interpolatedEndpoint =
@@ -56,10 +60,9 @@ const Query = ({
   const builtUrl = buildUrl(interpolatedEndpoint, url)
 
   const syncStorageData = !storageAsync
-    ? getStorageItemSync(persistentStorage, STORAGE_KEY, builtUrl)
+    ? getStorageItemSync(persistentStorage, STORAGE_KEY, endpoint)
     : undefined
 
-  const [data, setData] = useState(syncStorageData)
   const [error, setError] = useState()
   const [isLoading, setIsLoading] = useState(syncStorageData ? false : true)
   const [isRefetching, setIsRefetching] = useState(false)
@@ -74,29 +77,29 @@ const Query = ({
         const storageData = await getStorageItem(
           persistentStorage,
           STORAGE_KEY,
-          builtUrl,
+          endpoint,
         )
 
-        setData(storageData)
+        setData((state: any) => ({ ...state, [endpoint]: storageData }))
         setIsLoading(false)
       }
 
       const response = await requester(builtUrl, config)
 
-      setData(response.data)
+      setData((state: any) => ({ ...state, [endpoint]: response.data }))
 
       if (typeof onComplete === 'function') {
         onComplete(response.data)
       }
 
-      setStorageItem(persistentStorage, STORAGE_KEY, builtUrl, response.data)
+      setStorageItem(persistentStorage, STORAGE_KEY, endpoint, response.data)
     } catch (err) {
-      setError(err)
-    } finally {
       if (typeof onComplete === 'function') {
-        onComplete()
+        onComplete(err)
       }
 
+      setError(err)
+    } finally {
       setIsLoading(false)
     }
   }
@@ -107,12 +110,20 @@ const Query = ({
     try {
       const response = await requester(builtUrl, config)
 
-      setData(response.data)
+      setData((state: any) => ({ ...state, [endpoint]: response.data }))
 
-      setStorageItem(persistentStorage, STORAGE_KEY, builtUrl, response.data)
+      setStorageItem(persistentStorage, STORAGE_KEY, endpoint, response.data)
+
+      if (typeof onComplete === 'function') {
+        onComplete(response.data)
+      }
 
       return response.data
     } catch (err) {
+      if (typeof onComplete === 'function') {
+        onComplete(err)
+      }
+
       setError(err)
     } finally {
       setIsRefetching(false)
@@ -142,34 +153,41 @@ const Query = ({
         loadMoreStorageData = await getStorageItem(
           persistentStorage,
           STORAGE_KEY,
-          builtUrl,
+          endpoint,
         )
       } else if (!storageAsync) {
         loadMoreStorageData = getStorageItemSync(
           persistentStorage,
           STORAGE_KEY,
-          builtUrl,
+          endpoint,
         )
       }
 
       if (loadMoreStorageData) {
-        setData((state: any) =>
-          Array.isArray(state)
-            ? [...state, ...loadMoreStorageData]
-            : { ...state, ...loadMoreStorageData },
-        )
+        setData((state: any) => ({
+          ...state,
+          [endpoint]: Array.isArray(state[endpoint])
+            ? [...state[endpoint], ...loadMoreStorageData]
+            : { ...state[endpoint], ...loadMoreStorageData },
+        }))
         setIsLoadingMore(false)
       }
 
       const response = await requester(loadMoreUrl, config)
 
-      setData((state: any) =>
-        Array.isArray(state)
-          ? [...state, ...response.data]
-          : { ...state, ...response.data },
-      )
+      setData((state: any) => ({
+        ...state,
+        [endpoint]: Array.isArray(state[endpoint])
+          ? [...state[endpoint], ...response.data]
+          : { ...state[endpoint], ...response.data },
+      }))
 
-      setStorageItem(persistentStorage, STORAGE_KEY, loadMoreUrl, response.data)
+      setStorageItem(
+        persistentStorage,
+        STORAGE_KEY,
+        interpolatedLoadMoreEndpoint,
+        response.data,
+      )
 
       return response.data
     } catch (err) {
@@ -179,10 +197,7 @@ const Query = ({
     }
   }
 
-  useEffect(() => {
-    initFetch()
-  }, [])
-
+  // This handles refetches after mutations
   useEffect(() => {
     if (
       (Array.isArray(refetchForEndpoints) &&
@@ -196,12 +211,25 @@ const Query = ({
         removeFetchEndpoint(endpoint)
       }
 
-      initFetch()
+      if (isMounted.current) {
+        initFetch()
+      }
     }
   }, [key])
 
+  const isMounted = useRef(false)
+
+  // This is used for the initial mount of the component
+  useEffect(() => {
+    if (!data[endpoint] || refetchOnMount) {
+      initFetch()
+    }
+
+    isMounted.current = true
+  }, [])
+
   return children({
-    data,
+    data: data[endpoint],
     error,
     isLoading,
     isLoadingMore,
@@ -209,6 +237,15 @@ const Query = ({
     loadMore,
     refetch,
   })
+}
+
+export const useQuery = ({
+  ...args
+}: Pick<Props, Exclude<keyof Props, 'children'>>): Children => {
+  const children = (params: Children) => params
+
+  // @ts-ignore
+  return Query({ ...args, children })
 }
 
 export default Query

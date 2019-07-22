@@ -1,5 +1,5 @@
 import NetworkQueryProvider from './Provider'
-import Mutation from './Mutation'
-import Query from './Query'
+import Mutation, { useMutation } from './Mutation'
+import Query, { useQuery } from './Query'
 
-export { NetworkQueryProvider, Mutation, Query }
+export { NetworkQueryProvider, Mutation, Query, useQuery, useMutation }

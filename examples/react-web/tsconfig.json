@@ -20,8 +20,7 @@
     "jsx": "preserve"
   },
   "include": [
-    "src",
-    "../../src"
+    "src"
   ],
   "filesGlob": [
     "**/*.ts"

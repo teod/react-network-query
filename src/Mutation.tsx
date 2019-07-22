@@ -18,7 +18,7 @@ interface Common {
 }
 
 interface ChildrenArg {
-  update: (arg0: Common) => Promise<any>
+  update: (arg0?: Common) => Promise<any>
   isMutating: boolean
   error: Error
 }
@@ -43,13 +43,21 @@ const Mutation = ({
   const [isMutating, setIsMutating] = useState(false)
   const [error, setError] = useState()
 
-  const update = async ({
-    endpoint: endpointInline,
-    body: bodyInline,
-    method: methodInline,
-    variables: variablesInline,
-    fetchOptions: fetchOptionsInline,
-  }: Common) => {
+  const update = async (arg?: Common) => {
+    const {
+      endpoint: endpointInline,
+      body: bodyInline,
+      method: methodInline,
+      variables: variablesInline,
+      fetchOptions: fetchOptionsInline,
+    } = arg || {
+      body,
+      endpoint,
+      fetchOptions,
+      method,
+      variables,
+    }
+
     setIsMutating(true)
 
     try {
@@ -64,6 +72,7 @@ const Mutation = ({
       const builtUrl = buildUrl(interpolatedEndpoint, url)
 
       const response = await requester(builtUrl, {
+        body: JSON.stringify(bodyInline || body),
         data: bodyInline || body,
         method: methodInline || method,
         ...fetchOptions,
@@ -94,6 +103,15 @@ const Mutation = ({
   }
 
   return children({ update, isMutating, error })
+}
+
+export const useMutation = ({
+  ...args
+}: Pick<Props, Exclude<keyof Props, 'children'>>): ChildrenArg => {
+  const children = (params: ChildrenArg) => params
+
+  // @ts-ignore
+  return Mutation({ ...args, children })
 }
 
 export default Mutation

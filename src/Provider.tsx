@@ -12,10 +12,12 @@ interface Context {
   refetchForEndpoints?: string[] | null
   removeFetchEndpoint?: (arg0: string) => void
   storageAsync?: boolean
+  data: { [key: string]: any }
+  setData: (arg0: any) => void
 }
 
 interface Props {
-  children: ReactElement
+  children: ReactElement | ReactElement[]
   url?: string
   headers?: { [key: string]: string }
   persistentStorage?: PersistentStorage
@@ -42,8 +44,10 @@ const getRequester = (requester: any) =>
 export const STORAGE_KEY = 'react-network-query'
 
 export const NetworkQueryContext = React.createContext<Context>({
+  data: {},
   key: initKey,
   requester: fetch,
+  setData: (item: any) => null,
   url: '',
 })
 
@@ -55,6 +59,7 @@ const NetworkQueryProvider = ({
   requester = fetch,
   storageAsync = false,
 }: Props) => {
+  const [data, setData] = useState({})
   const [key, setKey] = useState(initKey)
   const [refetchForEndpoints, setRefetchForEndpoints] = useState<
     string[] | null
@@ -83,11 +88,13 @@ const NetworkQueryProvider = ({
   return (
     <NetworkQueryContext.Provider
       value={{
+        data,
         key,
         persistentStorage,
         refetchForEndpoints,
         removeFetchEndpoint,
         requester: getRequester(requester),
+        setData,
         storageAsync,
         updateKey,
         url,
