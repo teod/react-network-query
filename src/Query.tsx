@@ -27,7 +27,7 @@ interface Children {
 interface Props {
   endpoint: string
   variables?: Variables
-  children: (arg0: Children) => ReactElement | ReactElement[]
+  children: (arg0: Children) => ReactElement
   fetchOptions?: { [key: string]: string | number | object }
   onComplete?: (arg0?: any) => void
   refetchOnMount?: boolean
