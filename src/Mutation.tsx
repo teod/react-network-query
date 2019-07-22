@@ -92,12 +92,12 @@ const Mutation = ({
 
       return response
     } catch (err) {
-      setError(err)
-    } finally {
       if (typeof onComplete === 'function') {
-        onComplete()
+        onComplete(err)
       }
 
+      setError(err)
+    } finally {
       setIsMutating(false)
     }
   }
