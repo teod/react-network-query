@@ -16,12 +16,14 @@ interface Variables {
 
 interface Children {
   data: any
-  isLoading: boolean
   error: Error
-  refetch: () => Promise<any>
+  query: () => Promise<void>
+  isLoading: boolean
+  isLoadingMore: boolean
   isRefetching: boolean
   loadMore: (arg0: string, arg1?: Variables) => Promise<any>
-  isLoadingMore: boolean
+  refetch: () => Promise<any>
+  setData: (arg0: any[] | object) => void
 }
 
 interface Props {
@@ -31,6 +33,7 @@ interface Props {
   fetchOptions?: { [key: string]: string | number | object }
   onComplete?: (arg0?: any) => void
   refetchOnMount?: boolean
+  isHook?: boolean
 }
 
 const Query = ({
@@ -40,6 +43,7 @@ const Query = ({
   fetchOptions,
   onComplete,
   refetchOnMount = false,
+  isHook = false,
 }: Props) => {
   const {
     requester,
@@ -221,8 +225,10 @@ const Query = ({
 
   // This is used for the initial mount of the component
   useEffect(() => {
-    if (!data[endpoint] || refetchOnMount) {
-      initFetch()
+    if (!isHook) {
+      if (!data[endpoint] || refetchOnMount) {
+        initFetch()
+      }
     }
 
     isMounted.current = true
@@ -235,7 +241,14 @@ const Query = ({
     isLoadingMore,
     isRefetching,
     loadMore,
+    query: initFetch,
     refetch,
+    setData: (newData: any[] | object) => {
+      setData((state: object) => ({
+        ...state,
+        [endpoint]: newData,
+      }))
+    },
   })
 }
 
@@ -245,7 +258,7 @@ export const useQuery = ({
   const children = (params: Children) => params
 
   // @ts-ignore
-  return Query({ ...args, children })
+  return Query({ ...args, children, isHook: true })
 }
 
 export default Query

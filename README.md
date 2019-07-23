@@ -125,13 +125,18 @@ If you prefer using hooks with React Network Query, there are two main exposed h
 import { useQuery } from 'react-network-query'
 
 const Cats = () => {
-  const { data, isLoading, error, refetch, loadMore, isLoadingMore } = useQuery({
+  const { data, query, isLoading, error, refetch, loadMore, isLoadingMore } = useQuery({
     endpoint: '/cats?_page={{page}}&_limit={{limit}}',
     variables: {
       limit: 20
       page: 0,  
     },
   })
+
+  // load cats data on mount
+  useEffect(() => {
+    query()
+  }, [])
 
   if (isLoading) {
     return <span>Loading...</span>
@@ -165,7 +170,8 @@ const Cats = () => {
 }
 ```
 
-If you render `<Cats />` within your component tree, the cats will be fetched from the API when component will mount, it has the same functionality as the `<Query />` component.
+If you render `<Cats />` within your component tree, the cats will be fetched from the API when the component will mount, it has the same functionality as the `<Query />` component.
+You can control when the actual initial fetch takes place using the `query` function exposed by the `useQuery` hook.
 The `useQuery` interface is virtually the same as the `<Query />` component one.
 
 For making a `POST | PUT | PATCH | DELETE` network call you can use the `useMutation` hook:
@@ -196,6 +202,77 @@ The `useMutation` interface is virtually the same as the `<Mutation />` componen
 
 **`We recommend using the <Query /> and <Mutation /> components instead of hooks, using a more declative way of writing your react components.`**
 
+### Local state update
+
+There are cases when you want to update the local state without letting/waiting for the network call to finish, or you need to reflect certain local changes in the UI, for this a `setData` function is exposed, it receives the update piece of data for that specific endpoint:
+
+```js
+import { Query } from 'react-network-query'
+
+const Cats = () => (
+  <Query endpoint="/cats">
+    {({ data, setData}) => (
+      <>
+        <ul>
+          {data.map((cat) => (
+            <li key={cat.id}>{cat.name}</li>
+          ))}
+        </ul>
+        <button
+          onClick={() => {
+            const updatedCats = data.map(cat => ({
+              ...cat,
+              food: 'whiskas',
+            }))
+
+            setData(updatedCats)
+          }}
+        >
+          Add food
+        </button>
+      </>
+    )}
+  </Query>
+)
+```
+or using a hook:
+```js
+import { useQuery } from 'react-network-query'
+
+const Cats = () => {
+  const { data = [], query, setData } = useQuery()
+
+  return (
+    <Query endpoint="/cats">
+      {({ data, setData}) => (
+        <>
+          <ul>
+            {data.map((cat) => (
+              <li key={cat.id}>{cat.name}</li>
+            ))}
+          </ul>
+          <button
+            onClick={() => {
+              const updatedCats = data.map(cat => ({
+                ...cat,
+                food: 'whiskas',
+              }))
+
+              setData(updatedCats)
+            }}
+          >
+            Add food
+          </button>
+          <button onClick={() => query()}>
+            Fetch cats
+          </button>
+        </>
+      )}
+    </Query>
+  )
+}
+```
+
 ## API Reference
 
 ### `<NetworkQueryProvider />`
@@ -214,7 +291,7 @@ The `useMutation` interface is virtually the same as the `<Mutation />` componen
 | :-------------- | :-----: | :---------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | children        |    -    |    `(arg0: QueryRenderArg) => ReactElement`     | Required prop, needs to be a function that will return a valid react element.                                                                                                                                                                                                         |
 | endpoint        |    -    |                    `string`                     | Required prop, the endpoint for which to make the network call. It will be concatenated to the `url` prop passed to the `<NetworkQueryProvider />` if any. In case the endpoint is a valid url by itself e.g. `https://local.dev/cats` it will disregard the base `url` prop overall. |
-| variables?      |    -    |      `{ [key: string]: string or number }`       | key -> value pairs, used for interpolating the endpoint using moustache.js like handlebars syntax e.g. for `/cats/{{id}}` endpoint a `{ id: 2 }` variables object can be passed.                                                                                                      |
+| variables?      |    -    |      `{ [key: string]: string or number }`      | key -> value pairs, used for interpolating the endpoint using moustache.js like handlebars syntax e.g. for `/cats/{{id}}` endpoint a `{ id: 2 }` variables object can be passed.                                                                                                      |
 | fetchOptions?   |    -    | `{ [key: string]: string or number or object }` | Additional options to be attached to the network request. The provided options depend on the requester instance used, so please consult axios/fetch api reference accordingly.                                                                                                        |
 | onComplete?     |    -    |              `(arg0: any) => void`              | Callback triggered when the network call is finished, it receives the returned network request data as a parameter on success and the Error instance in case of failure.                                                                                                              |
 | refetchOnMount? |  false  |                    `boolean`                    | If passed as `true` it will do the request for the specified `endpoint` prop, even if data has already been fetched and it is saved in the state manager.                                                                                                                             |
@@ -246,6 +323,7 @@ The `<Mutation />` component also inherits all `UpdateArg Interface`. The argume
 | refetch       |                                 `() => Promise<any>`                                  | Refetches the data, useful for triggering refreshes.                                                                                                                                                                         |
 | loadMore      | `(endpoint: string, variables?: { [key: string]: string or number }) => Promise<any>` | Function used for loading more data, useful on paginations, the first parameter is the endpoint for which to make the network call, and the second parameter is variables object used for interpolating the endpoint string. |
 | isLoadingMore |                                       `boolean`                                       | State of the network request triggered by `loadMore` function.                                                                                                                                                               |
+| setData       |                           `(arg0: any[] | object) => void`                            | An exposed function for updating localy the state data for a specific Query, this can be used for optimistic updates.                                                                                                        |
 
 ### `PeristentStorage Interface`
 | Prop       |                Type                 | Description                                                              |

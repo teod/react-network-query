@@ -23,7 +23,15 @@ const App: React.FC = () => {
             console.log('request complete', data)
           }}
         >
-          {({ data, isLoading, loadMore, isLoadingMore, error, refetch }) =>
+          {({
+            data,
+            isLoading,
+            loadMore,
+            isLoadingMore,
+            error,
+            refetch,
+            setData,
+          }) =>
             isLoading ? (
               <div>Loading...</div>
             ) : error ? (
@@ -46,6 +54,24 @@ const App: React.FC = () => {
                       }}
                     >
                       Refetch
+                    </button>
+                    <br />
+                    <button
+                      onClick={() => {
+                        const newData = data.map(
+                          (item: object, index: number) =>
+                            index === 0
+                              ? {
+                                  email: 'mutated@mutated.com',
+                                  name: 'mutated',
+                                }
+                              : item,
+                        )
+
+                        setData(newData)
+                      }}
+                    >
+                      Local state update
                     </button>
                     <br />
                     <button
