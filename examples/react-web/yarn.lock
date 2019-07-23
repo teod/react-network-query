@@ -8507,10 +8507,10 @@ react-is@^16.8.1, react-is@^16.8.4:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.8.6.tgz#5bbc1e2d29141c9fbdfed456343fe2bc430a6a16"
   integrity sha512-aUk3bHfZ2bRSVFFbbeVS4i+lNPZr3/WM5jT2J5omUVV1zzcs1nAaf3l51ctA5FFvCRbhrH0bdAsRRQddFJZPtA==
 
-react-network-query@^0.1.0:
-  version "0.1.9"
-  resolved "https://registry.yarnpkg.com/react-network-query/-/react-network-query-0.1.9.tgz#a88d6e1efdb37671ff6fe1ad3ab972329d06ddf7"
-  integrity sha512-8+45febujvIqjOfp7WvReaf+1wwVyY0qhpvRmN4E6eZKh/VBdTzN/DGRo4KR+6QJ4k1dq6XN9mSLCj8XMq9F2g==
+react-network-query@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/react-network-query/-/react-network-query-0.2.1.tgz#287b19415ce9655bcf68ed3b716ab175e607b973"
+  integrity sha512-ldL1/SXBSdOqxDIDVJLMKjkuOq0CfNp2wPteMnq9z2nNCgmSb+FVTVirXloWaXGdYxWqlE2M4o4eB/8oyOfx2Q==
   dependencies:
     "@types/jest" "24.0.15"
     "@types/node" "12.6.8"
