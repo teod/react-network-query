@@ -88,7 +88,7 @@ const Query = ({
         setIsLoading(false)
       }
 
-      const response = await requester(builtUrl, config)
+      const response = await requester(builtUrl, config, variables)
 
       setData((state: any) => ({ ...state, [endpoint]: response.data }))
 
@@ -112,7 +112,7 @@ const Query = ({
     setIsRefetching(true)
 
     try {
-      const response = await requester(builtUrl, config)
+      const response = await requester(builtUrl, config, variables)
 
       setData((state: any) => ({ ...state, [endpoint]: response.data }))
 
@@ -177,7 +177,7 @@ const Query = ({
         setIsLoadingMore(false)
       }
 
-      const response = await requester(loadMoreUrl, config)
+      const response = await requester(loadMoreUrl, config, variables)
 
       setData((state: any) => ({
         ...state,

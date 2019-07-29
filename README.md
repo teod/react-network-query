@@ -240,35 +240,31 @@ or using a hook:
 import { useQuery } from 'react-network-query'
 
 const Cats = () => {
-  const { data = [], query, setData } = useQuery()
+  const { data = [], query, setData } = useQuery({ endpoint: '/cats' })
 
   return (
-    <Query endpoint="/cats">
-      {({ data, setData}) => (
-        <>
-          <ul>
-            {data.map((cat) => (
-              <li key={cat.id}>{cat.name}</li>
-            ))}
-          </ul>
-          <button
-            onClick={() => {
-              const updatedCats = data.map(cat => ({
-                ...cat,
-                food: 'whiskas',
-              }))
+    <>
+      <ul>
+        {data.map((cat) => (
+          <li key={cat.id}>{cat.name}</li>
+        ))}
+      </ul>
+      <button
+        onClick={() => {
+          const updatedCats = data.map(cat => ({
+            ...cat,
+            food: 'whiskas',
+          }))
 
-              setData(updatedCats)
-            }}
-          >
-            Add food
-          </button>
-          <button onClick={() => query()}>
-            Fetch cats
-          </button>
-        </>
-      )}
-    </Query>
+          setData(updatedCats)
+        }}
+      >
+        Add food
+      </button>
+      <button onClick={() => query()}>
+        Fetch cats
+      </button>
+    </>
   )
 }
 ```
@@ -331,6 +327,10 @@ The `<Mutation />` component also inherits all `UpdateArg Interface`. The argume
 | setItem    | `(key: string, value: any) => void` | Function for setting a single key -> value pair into persistent storage. |
 | getItem    |       `(key: string) => any`        | Function for retrieving data for a specific key from persistent storage. |
 | removeItem |       `(key: string) => void`       | Function for deleting data for a specific key from persistent storage.   |
+
+## Use a custom requester
+
+If you need to use a custom requester for network requests please refer to the [CUSTOM_REQUESTER](/CUSTOM_REQUESTER.md) documentation for an example on how you can write your own.
 
 ## Examples
 [React Web](/examples/react-web)

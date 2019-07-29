@@ -43,7 +43,7 @@ const App: React.FC = () => {
                 body={{ name: 'Updated Name', email: 'update@email.com' }} // This is overwriten by the update function
                 refetch={['/users?_page={{page}}&_limit={{limit}}']} // This will refetch only the specified endpoint
                 onComplete={response => {
-                  console.log('mutaion complete', response)
+                  console.log('mutation complete', response)
                 }}
               >
                 {({ update, isMutating }) => (

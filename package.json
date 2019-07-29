@@ -1,6 +1,6 @@
 {
   "name": "react-network-query",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Declarative components for making network requests in react",
   "main": "dist/index.js",
   "scripts": {
