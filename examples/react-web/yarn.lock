@@ -8365,9 +8365,9 @@ react-is@^16.8.1, react-is@^16.8.4:
   integrity sha512-aUk3bHfZ2bRSVFFbbeVS4i+lNPZr3/WM5jT2J5omUVV1zzcs1nAaf3l51ctA5FFvCRbhrH0bdAsRRQddFJZPtA==
 
 react-network-query@^0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/react-network-query/-/react-network-query-0.2.1.tgz#287b19415ce9655bcf68ed3b716ab175e607b973"
-  integrity sha512-ldL1/SXBSdOqxDIDVJLMKjkuOq0CfNp2wPteMnq9z2nNCgmSb+FVTVirXloWaXGdYxWqlE2M4o4eB/8oyOfx2Q==
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/react-network-query/-/react-network-query-0.2.2.tgz#4122373e4ba86543443510e7f44f0162817d31cf"
+  integrity sha512-w5V5Iib3LNZavVHzKU+HToRGTmUTy5oARyIIRN6Ne89mXVrn/SIObxUjhQwXO+sqTCvqZMRZ/IAhKMct0aWTuQ==
   dependencies:
     "@types/jest" "24.0.15"
     "@types/node" "12.6.8"
