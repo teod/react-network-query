@@ -2,11 +2,11 @@
 
 [![npm version](https://img.shields.io/npm/v/react-network-query.svg?style=flat-square)](https://www.npmjs.com/package/react-network-query)
 
-React Network Query is a library inspired by [React Apollo](http://dev.apollodata.com/react/), it allows to use simple declarative react components for making network rest requests and saving state in a similar way React Apollo allows to do it for graphql requests.
+**React Network Query** is a library inspired by [React Apollo](http://dev.apollodata.com/react/). Do you know how React Appolo allows simple declarative React components to make GraphQL requests and save the state? This library does something similar, but for REST calls. Think of it as the React Apollo for REST requests.
 
-Think of it as apollo for rest requests.
+It works out of the box for React and ReactDOM.
 
-It works out of the box for React and ReactDOM, there is support for React Native, but it is still experimental.
+There is support for React Native, but it is still experimental.
 
 ## Installation
 
@@ -31,7 +31,7 @@ ReactDOM.render(
 );
 ```
 
-Now you may create `<Query>` and `<Mutation>` components in this React tree that are able to make REST network calls and save response as state.
+Now you may create `<Query>` and `<Mutation>` components in this React tree that are able to make REST network calls and save the response as a state.
 
 Connect one of your components to your REST server using the `<Query>` component:
 
@@ -61,9 +61,9 @@ const Cats = () => (
 )
 ```
 
-If you render `<Cats />` within your component tree, you’ll first see a loading state and then a list of cat names once React Network Query finishes to load data from your API.
+If you render `<Cats />` within your component tree, you will first see a loading state, and then a list of cat names once **React Network Query** finishes to load data from your API.
 
-If you need to make an update request, for one of the `POST | PUT | PATCH | DELETE` methods, you have to use the `<Mutation>` component, and wrap your react elements that will trigger the update:
+Use the `<Mutation>` component to make an update REST request, with one of the `POST | PUT | PATCH | DELETE` methods, and wrap your React elements that trigger the update:
 
 ```js
 import { Mutation } from 'react-network-query'
@@ -109,17 +109,22 @@ const CatsContainer = () => (
 )
 ```
 
-If you render `<CatsContainer />` within your component tree, when the user will click the button a new cat will be created, until the API call is ready, you will see a loading state.
+In the example above, if you render `<CatsContainer />` within your component tree and the user clicks on the button to add a new cat, you will see a loading state, until the REST update call finishes.
 
 Passing parameters directly to the `update` function will overwrite any corresponding props passed to the `<Mutation />` component.
 
-If you would like to see all of the features `<NetworkQueryProvider />`, `<Query />` and `<Mutation />` supports be sure to check out the [API reference][].
+If you would like to see all the features that `<NetworkQueryProvider />`, `<Query />` and `<Mutation />` support be sure to check out the [API reference][].
 
 [api reference]: #api-reference
 
 ### Usage with hooks
 
-If you prefer using hooks with React Network Query, there are two main exposed hook functions: `useQuery` and `useMutation`, please note that the components which will use those still needs to be wrapped inside `<NetworkQueryProvider />`.
+If you prefer to use hooks with **React Network Query**, there are two main exposed functions:
+
+* `useQuery` 
+* `useMutation`
+
+Please note that the components which will use the above hook functions need to be wrapped inside `<NetworkQueryProvider />`.
 
 ```js
 import { useQuery } from 'react-network-query'
@@ -171,6 +176,7 @@ const Cats = () => {
 ```
 
 If you render `<Cats />` within your component tree, the cats will be fetched from the API when the component will mount, it has the same functionality as the `<Query />` component.
+
 You can control when the actual initial fetch takes place using the `query` function exposed by the `useQuery` hook.
 The `useQuery` interface is virtually the same as the `<Query />` component one.
 
@@ -197,14 +203,15 @@ const CatsContainer = () => {
 }
 ```
 
-If you render `<CatsContainer />` within your component tree, when the user will click the Create cat button a new POST network request will be made, which will create a new cat.
-The `useMutation` interface is virtually the same as the `<Mutation />` component one.
+If you render `<CatsContainer />` within your component tree, when the user will click the `Create cat` button a new POST network request will be made, which will create a new cat.
 
-**`We recommend using the <Query /> and <Mutation /> components instead of hooks, using a more declative way of writing your react components.`**
+The `useMutation` interface is virtually the same as the `<Mutation />` component.
+
+**`We recommend using the <Query /> and <Mutation /> components instead of hooks, using a more declarative way of writing your react components.`**
 
 ### Local state update
 
-There are cases when you want to update the local state without letting/waiting for the network call to finish, or you need to reflect certain local changes in the UI, for this a `setData` function is exposed, it receives the update piece of data for that specific endpoint:
+To update the local state without making a network call, or to reflect certain local changes in the UI use `setData` function. It receives the update piece of the data for that specific endpoint:
 
 ```js
 import { Query } from 'react-network-query'
