@@ -269,6 +269,58 @@ const Cats = () => {
 }
 ```
 
+### Consume local state
+
+**We discourage the use of the `<Consumer />` component and `useConsumer` hook, we recommend using specific `<Query />` components and separating your application concerns.**
+
+For some specific edge cases you may require to get or set local data exposed by the `NetworkQueryProvider` in order to do this you can use the exposed `<Consumer />` component or the `useConsumer` hook which exposes all of the data from the context, and the global `setData` function. This function does not do any queries nor it mutates data through network calls in any way:
+
+```js
+import { Consumer } from 'react-network-query'
+
+const EdgeCaseComponent = () => (
+  <Consumer>
+    {({ data, setData }) => (
+      <>
+        <span>{JSON.stringify(data)}</span>
+        <button
+          onClick={() => {
+            setData({ '/cats': [] }) // this will rewrite the whole global state context
+          }}
+        >
+          Set global state
+        </button>
+      </>
+    )}
+  </Consumer>
+)
+```
+or using a hook:
+```js
+import { useConsumer } from 'react-network-query'
+
+const EdgeCaseComponent = () => {
+  const [data, setData] = useConsumer()
+
+  return (
+    <>
+      <span>{JSON.stringify(data)}</span>
+      <button
+        onClick={() => {
+          setData({ '/cats': [] }) // this will rewrite the whole global state context
+        }}
+      >
+        Set global state
+      </button>
+    </>
+  )
+}
+```
+
+### Use a custom requester
+
+If you need to use a custom requester for network requests please refer to the [CUSTOM_REQUESTER](/CUSTOM_REQUESTER.md) documentation for an example on how you can write your own.
+
 ## API Reference
 
 ### `<NetworkQueryProvider />`
@@ -328,9 +380,10 @@ The `<Mutation />` component also inherits all `UpdateArg Interface`. The argume
 | getItem    |       `(key: string) => any`        | Function for retrieving data for a specific key from persistent storage. |
 | removeItem |       `(key: string) => void`       | Function for deleting data for a specific key from persistent storage.   |
 
-## Use a custom requester
-
-If you need to use a custom requester for network requests please refer to the [CUSTOM_REQUESTER](/CUSTOM_REQUESTER.md) documentation for an example on how you can write your own.
+### `<Consumer />`
+| Prop     | Default |                                       Type                                       | Description                                                                   |
+| :------- | :-----: | :------------------------------------------------------------------------------: | :---------------------------------------------------------------------------- |
+| children |    -    | `(arg0: { data: any[] | object, setData: (arg0: any) => void }) => ReactElement` | Required prop, needs to be a function that will return a valid react element. |
 
 ## Examples
 [React Web](/examples/react-web)
