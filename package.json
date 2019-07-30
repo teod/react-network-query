@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "compile": "rimraf dist/*; tsc",
-    "prepublish": "rimraf examples; npm run compile",
+    "prepublish": "npm run compile",
     "test": "react-scripts test"
   },
   "repository": {
