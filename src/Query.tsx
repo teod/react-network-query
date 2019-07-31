@@ -76,19 +76,22 @@ const Query = ({
 
   const initFetch = async () => {
     try {
+      let setPersistentStorage = true
+
       // Restore async persistent storage
       if (storageAsync && persistentStorage) {
-        const storageData = await getStorageItem(
-          persistentStorage,
-          STORAGE_KEY,
-          endpoint,
+        getStorageItem(persistentStorage, STORAGE_KEY, endpoint).then(
+          storageData => {
+            if (setPersistentStorage) {
+              setData((state: any) => ({ ...state, [endpoint]: storageData }))
+              setIsLoading(false)
+            }
+          },
         )
-
-        setData((state: any) => ({ ...state, [endpoint]: storageData }))
-        setIsLoading(false)
       }
 
       const response = await requester(builtUrl, config, variables)
+      setPersistentStorage = false
 
       setData((state: any) => ({ ...state, [endpoint]: response.data }))
 
@@ -134,6 +137,19 @@ const Query = ({
     }
   }
 
+  const setLoadMoreStorageData = (storageData: any[] | object | undefined) => {
+    if (storageData) {
+      setData((state: any) => ({
+        ...state,
+        [endpoint]:
+          Array.isArray(state[endpoint]) && Array.isArray(storageData)
+            ? [...state[endpoint], ...storageData]
+            : { ...state[endpoint], ...storageData },
+      }))
+      setIsLoadingMore(false)
+    }
+  }
+
   const loadMore = async (
     loadMoreEndpoint: string,
     extraVariables: Variables = {},
@@ -150,34 +166,30 @@ const Query = ({
 
       const loadMoreUrl = buildUrl(interpolatedLoadMoreEndpoint, url)
 
-      let loadMoreStorageData: any
+      let setPersistentStorage = true
 
       // Restore async persistent storage
       if (storageAsync && persistentStorage) {
-        loadMoreStorageData = await getStorageItem(
+        getStorageItem(persistentStorage, STORAGE_KEY, endpoint).then(
+          loadMoreStorageData => {
+            if (setPersistentStorage) {
+              setLoadMoreStorageData(loadMoreStorageData)
+            }
+          },
+        )
+      } else if (!storageAsync && persistentStorage) {
+        const loadMoreStorageData = getStorageItemSync(
           persistentStorage,
           STORAGE_KEY,
           endpoint,
         )
-      } else if (!storageAsync) {
-        loadMoreStorageData = getStorageItemSync(
-          persistentStorage,
-          STORAGE_KEY,
-          endpoint,
-        )
-      }
 
-      if (loadMoreStorageData) {
-        setData((state: any) => ({
-          ...state,
-          [endpoint]: Array.isArray(state[endpoint])
-            ? [...state[endpoint], ...loadMoreStorageData]
-            : { ...state[endpoint], ...loadMoreStorageData },
-        }))
-        setIsLoadingMore(false)
+        setLoadMoreStorageData(loadMoreStorageData)
       }
 
       const response = await requester(loadMoreUrl, config, variables)
+
+      setPersistentStorage = false
 
       setData((state: any) => ({
         ...state,

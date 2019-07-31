@@ -154,7 +154,9 @@ export const getStorageItem = async (
 
       return JSON.parse(persistentItem)
     } catch (err) {
-      persistentStorage.removeItem(`${storageKeyPrefix}${storageKey}`)
+      if (persistentStorage.removeItem) {
+        persistentStorage.removeItem(`${storageKeyPrefix}${storageKey}`)
+      }
     }
   }
 }
