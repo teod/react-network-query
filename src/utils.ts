@@ -122,7 +122,9 @@ export const getStorageItemSync = (
         persistentStorage.getItem(`${storageKeyPrefix}${storageKey}`),
       )
     } catch (err) {
-      persistentStorage.removeItem(`${storageKeyPrefix}${storageKey}`)
+      if (persistentStorage.removeItem) {
+        persistentStorage.removeItem(`${storageKeyPrefix}${storageKey}`)
+      }
     }
   }
 }
