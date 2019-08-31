@@ -28,7 +28,7 @@ ReactDOM.render(
     <MyRootComponent />
   </NetworkQueryProvider>,
   document.getElementById('root'),
-);
+)
 ```
 
 Now you may create `<Query>` and `<Mutation>` components in this React tree that are able to make REST network calls and save the response as a state.
@@ -92,11 +92,11 @@ const CatsContainer = () => (
     <Cats />
     <Mutation>
       {({ update, isMutating }) => (
-        <button 
+        <button
           onClick={
             () => update({
-              endpoint: '/cats/create', 
-              method="POST" 
+              endpoint: '/cats/create',
+              method="POST"
               body={{ name: 'Cate' }}
             })
           }
@@ -121,8 +121,8 @@ If you would like to see all the features that `<NetworkQueryProvider />`, `<Que
 
 If you prefer to use hooks with **React Network Query**, there are two main exposed functions:
 
-* `useQuery` 
-* `useMutation`
+- `useQuery`
+- `useMutation`
 
 Please note that the components which will use the above hook functions need to be wrapped inside `<NetworkQueryProvider />`.
 
@@ -134,7 +134,7 @@ const Cats = () => {
     endpoint: '/cats?_page={{page}}&_limit={{limit}}',
     variables: {
       limit: 20
-      page: 0,  
+      page: 0,
     },
   })
 
@@ -156,10 +156,10 @@ const Cats = () => {
       <ul>
         {data.map(cat => <li key={cat.id}>{cat.name}</li>)}
       </ul>
-      <button 
+      <button
         onClick={
           () => loadMore(
-            '/cats?_page={{page}}&_limit={{limit}}', 
+            '/cats?_page={{page}}&_limit={{limit}}',
             { limit: 20, page: 1 }
           )
         }
@@ -197,7 +197,7 @@ const CatsContainer = () => {
       <button onClick={() => update({ body: { name: 'Mr. Whiskers' } })}>
         {isMutating ? 'Loading...' : 'Create cat'}
       </button>
-      {error && (<span>Something went wrong</span>)}
+      {error && <span>Something went wrong</span>}
     </>
   )
 }
@@ -206,8 +206,6 @@ const CatsContainer = () => {
 If you render `<CatsContainer />` within your component tree, when the user will click the `Create cat` button a new POST network request will be made, which will create a new cat.
 
 The `useMutation` interface is virtually the same as the `<Mutation />` component.
-
-**`We recommend using the <Query /> and <Mutation /> components instead of hooks, using a more declarative way of writing your react components.`**
 
 ### Local state update
 
@@ -218,10 +216,10 @@ import { Query } from 'react-network-query'
 
 const Cats = () => (
   <Query endpoint="/cats">
-    {({ data, setData}) => (
+    {({ data, setData }) => (
       <>
         <ul>
-          {data.map((cat) => (
+          {data.map(cat => (
             <li key={cat.id}>{cat.name}</li>
           ))}
         </ul>
@@ -242,7 +240,9 @@ const Cats = () => (
   </Query>
 )
 ```
+
 or using a hook:
+
 ```js
 import { useQuery } from 'react-network-query'
 
@@ -252,7 +252,7 @@ const Cats = () => {
   return (
     <>
       <ul>
-        {data.map((cat) => (
+        {data.map(cat => (
           <li key={cat.id}>{cat.name}</li>
         ))}
       </ul>
@@ -268,9 +268,7 @@ const Cats = () => {
       >
         Add food
       </button>
-      <button onClick={() => query()}>
-        Fetch cats
-      </button>
+      <button onClick={() => query()}>Fetch cats</button>
     </>
   )
 }
@@ -302,7 +300,9 @@ const EdgeCaseComponent = () => (
   </Consumer>
 )
 ```
+
 or using a hook:
+
 ```js
 import { useConsumer } from 'react-network-query'
 
@@ -342,6 +342,7 @@ If you need to use a custom requester for network requests please refer to the [
 | storageAsync?           |  false  |                `boolean`                | Pass `true` if the persistent storage interface you are using works asynchronously (with promises).                                                                                                                                                                                                          |
 
 ### `<Query />`
+
 | Prop            | Default |                      Type                       | Description                                                                                                                                                                                                                                                                           |
 | :-------------- | :-----: | :---------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | children        |    -    |    `(arg0: QueryRenderArg) => ReactElement`     | Required prop, needs to be a function that will return a valid react element.                                                                                                                                                                                                         |
@@ -352,6 +353,7 @@ If you need to use a custom requester for network requests please refer to the [
 | refetchOnMount? |  false  |                    `boolean`                    | If passed as `true` it will do the request for the specified `endpoint` prop, even if data has already been fetched and it is saved in the state manager.                                                                                                                             |
 
 ### `<Mutation />`
+
 | Prop          | Default |                                                    Type                                                     | Description                                                                                                                                                                                                                                                                                                 |
 | :------------ | :-----: | :---------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | children      |    -    | `({ update, isMutating, error }: { update: UpdateArg, isMutation: boolean, error: Error }) => ReactElement` | Required prop, needs to be a function that will return a valid react element. It provides an `update` function to do the network request and an `isMutating` state for showing the current status of the network request.                                                                                   |
@@ -362,6 +364,7 @@ If you need to use a custom requester for network requests please refer to the [
 The `<Mutation />` component also inherits all `UpdateArg Interface`. The arguments used by the `update` function will always overwrite those ones passed directly as props to the `<Mutation />` component.
 
 ### `UpdateArg Interface`
+
 | Prop       |                 Type                  | Description                                                                                                                                                                                                                                                   |
 | :--------- | :-----------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | endpoint?  |               `string`                | The endpoint for which to make the network call, it will be concatenated to the `url` prop passed to `<NetworkQueryProvider />` if any. In case the endpoint is a valid url by itself e.g. `https://local.dev/cats` it will disregard the base `url` overall. |
@@ -370,6 +373,7 @@ The `<Mutation />` component also inherits all `UpdateArg Interface`. The argume
 | body?      |       `{ [key: string]: any }`        | The network request body.                                                                                                                                                                                                                                     |
 
 ### `QueryRenderArg Interface`
+
 | Prop          |                                         Type                                          | Description                                                                                                                                                                                                                  |
 | :------------ | :-----------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | data          |                                         `any`                                         | The data returned by the rest network api call.                                                                                                                                                                              |
@@ -381,6 +385,7 @@ The `<Mutation />` component also inherits all `UpdateArg Interface`. The argume
 | setData       |                           `(arg0: any[] | object) => void`                            | An exposed function for updating localy the state data for a specific Query, this can be used for optimistic updates.                                                                                                        |
 
 ### `PeristentStorage Interface`
+
 | Prop       |                Type                 | Description                                                              |
 | :--------- | :---------------------------------: | :----------------------------------------------------------------------- |
 | setItem    | `(key: string, value: any) => void` | Function for setting a single key -> value pair into persistent storage. |
@@ -388,9 +393,11 @@ The `<Mutation />` component also inherits all `UpdateArg Interface`. The argume
 | removeItem |       `(key: string) => void`       | Function for deleting data for a specific key from persistent storage.   |
 
 ### `<Consumer />`
-| Prop     | Default |                                       Type                                       | Description                                                                   |
-| :------- | :-----: | :------------------------------------------------------------------------------: | :---------------------------------------------------------------------------- |
-| children |    -    | `(arg0: { data: any[] | object, setData: (arg0: any) => void }) => ReactElement` | Required prop, needs to be a function that will return a valid react element. |
+
+| Prop     | Default |                                       Type                                        | Description                                                                   |
+| :------- | :-----: | :-------------------------------------------------------------------------------: | :---------------------------------------------------------------------------- |
+| children |    -    | `(arg0: { data: any[] or object, setData: (arg0: any) => void }) => ReactElement` | Required prop, needs to be a function that will return a valid react element. |
 
 ## Examples
+
 [React Web](/examples/react-web)

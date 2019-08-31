@@ -29,8 +29,7 @@ interface Props extends Common {
   onComplete?: (arg0?: any) => void
 }
 
-const Mutation = ({
-  children,
+export const useMutation = ({
   endpoint,
   body,
   variables,
@@ -38,7 +37,7 @@ const Mutation = ({
   method = 'POST',
   refetch = false,
   onComplete,
-}: Props) => {
+}: Pick<Props, Exclude<keyof Props, 'children'>>) => {
   const { requester, url, updateKey } = useContext(NetworkQueryContext)
   const [isMutating, setIsMutating] = useState(false)
   const [error, setError] = useState()
@@ -102,16 +101,13 @@ const Mutation = ({
     }
   }
 
-  return children({ update, isMutating, error })
+  return { update, isMutating, error }
 }
 
-export const useMutation = ({
-  ...args
-}: Pick<Props, Exclude<keyof Props, 'children'>>): ChildrenArg => {
-  const children = (params: ChildrenArg) => params
+export const Mutation = ({ children, ...restProps }: Props) => {
+  const args = useMutation(restProps)
 
-  // @ts-ignore
-  return Mutation({ ...args, children })
+  return children(args)
 }
 
 export default Mutation

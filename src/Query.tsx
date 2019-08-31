@@ -36,15 +36,14 @@ interface Props {
   isHook?: boolean
 }
 
-const Query = ({
-  children,
+export const useQuery = ({
   endpoint,
   variables,
   fetchOptions,
   onComplete,
   refetchOnMount = false,
-  isHook = false,
-}: Props) => {
+  isHook = true,
+}: Pick<Props, Exclude<keyof Props, 'children'>>) => {
   const {
     requester,
     url,
@@ -71,6 +70,7 @@ const Query = ({
   const [isLoading, setIsLoading] = useState(syncStorageData ? false : true)
   const [isRefetching, setIsRefetching] = useState(false)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [endpoints, setEndpoints] = useState([interpolatedEndpoint])
 
   const config = !isObjectEmpty(fetchOptions) ? fetchOptions : undefined
 
@@ -80,26 +80,39 @@ const Query = ({
 
       // Restore async persistent storage
       if (storageAsync && persistentStorage) {
-        getStorageItem(persistentStorage, STORAGE_KEY, endpoint).then(
-          storageData => {
-            if (setPersistentStorage) {
-              setData((state: any) => ({ ...state, [endpoint]: storageData }))
-              setIsLoading(false)
-            }
-          },
-        )
+        getStorageItem(
+          persistentStorage,
+          STORAGE_KEY,
+          interpolatedEndpoint,
+        ).then(storageData => {
+          if (setPersistentStorage) {
+            setData((state: any) => ({
+              ...state,
+              [interpolatedEndpoint]: storageData,
+            }))
+            setIsLoading(false)
+          }
+        })
       }
 
       const response = await requester(builtUrl, config, variables)
       setPersistentStorage = false
 
-      setData((state: any) => ({ ...state, [endpoint]: response.data }))
+      setData((state: any) => ({
+        ...state,
+        [interpolatedEndpoint]: response.data,
+      }))
 
       if (typeof onComplete === 'function') {
         onComplete(response.data)
       }
 
-      setStorageItem(persistentStorage, STORAGE_KEY, endpoint, response.data)
+      setStorageItem(
+        persistentStorage,
+        STORAGE_KEY,
+        interpolatedEndpoint,
+        response.data,
+      )
     } catch (err) {
       if (typeof onComplete === 'function') {
         onComplete(err)
@@ -117,9 +130,32 @@ const Query = ({
     try {
       const response = await requester(builtUrl, config, variables)
 
-      setData((state: any) => ({ ...state, [endpoint]: response.data }))
+      const dataReset = endpoints
+        .filter(endpointValue => endpointValue !== interpolatedEndpoint)
+        .reduce(
+          (acc, endpointValue: string) => ({
+            ...acc,
+            [endpointValue]: undefined,
+          }),
+          {},
+        )
 
-      setStorageItem(persistentStorage, STORAGE_KEY, endpoint, response.data)
+      setData((state: any) => ({
+        ...state,
+        ...dataReset,
+        [interpolatedEndpoint]: response.data,
+      }))
+
+      setEndpoints((state: string[]) =>
+        state.filter(endpointValue => endpointValue === interpolatedEndpoint),
+      )
+
+      setStorageItem(
+        persistentStorage,
+        STORAGE_KEY,
+        interpolatedEndpoint,
+        response.data,
+      )
 
       if (typeof onComplete === 'function') {
         onComplete(response.data)
@@ -137,14 +173,14 @@ const Query = ({
     }
   }
 
-  const setLoadMoreStorageData = (storageData: any[] | object | undefined) => {
+  const setLoadMoreStorageData = (
+    storageData: any[] | object | undefined,
+    interpolatedLoadMoreEndpoint: string,
+  ) => {
     if (storageData) {
       setData((state: any) => ({
         ...state,
-        [endpoint]:
-          Array.isArray(state[endpoint]) && Array.isArray(storageData)
-            ? [...state[endpoint], ...storageData]
-            : { ...state[endpoint], ...storageData },
+        [interpolatedLoadMoreEndpoint]: storageData,
       }))
       setIsLoadingMore(false)
     }
@@ -164,38 +200,46 @@ const Query = ({
           ? interpolateString(loadMoreEndpoint, mergedVariables)
           : endpoint
 
+      setEndpoints([...new Set([...endpoints, interpolatedLoadMoreEndpoint])])
+
       const loadMoreUrl = buildUrl(interpolatedLoadMoreEndpoint, url)
 
-      let setPersistentStorage = true
+      let shouldSetPersistentAsyncStorage = true
 
       // Restore async persistent storage
       if (storageAsync && persistentStorage) {
-        getStorageItem(persistentStorage, STORAGE_KEY, endpoint).then(
-          loadMoreStorageData => {
-            if (setPersistentStorage) {
-              setLoadMoreStorageData(loadMoreStorageData)
-            }
-          },
-        )
+        getStorageItem(
+          persistentStorage,
+          STORAGE_KEY,
+          interpolatedLoadMoreEndpoint,
+        ).then(loadMoreStorageData => {
+          if (shouldSetPersistentAsyncStorage) {
+            setLoadMoreStorageData(
+              loadMoreStorageData,
+              interpolatedLoadMoreEndpoint,
+            )
+          }
+        })
       } else if (!storageAsync && persistentStorage) {
         const loadMoreStorageData = getStorageItemSync(
           persistentStorage,
           STORAGE_KEY,
-          endpoint,
+          interpolatedLoadMoreEndpoint,
         )
 
-        setLoadMoreStorageData(loadMoreStorageData)
+        setLoadMoreStorageData(
+          loadMoreStorageData,
+          interpolatedLoadMoreEndpoint,
+        )
       }
 
       const response = await requester(loadMoreUrl, config, variables)
 
-      setPersistentStorage = false
+      shouldSetPersistentAsyncStorage = false
 
       setData((state: any) => ({
         ...state,
-        [endpoint]: Array.isArray(state[endpoint])
-          ? [...state[endpoint], ...response.data]
-          : { ...state[endpoint], ...response.data },
+        [interpolatedLoadMoreEndpoint]: response.data,
       }))
 
       setStorageItem(
@@ -228,7 +272,9 @@ const Query = ({
       }
 
       if (isMounted.current) {
-        initFetch()
+        endpoints.forEach((endpointValue: string) => {
+          loadMore(endpointValue)
+        })
       }
     }
   }, [key])
@@ -238,7 +284,7 @@ const Query = ({
   // This is used for the initial mount of the component
   useEffect(() => {
     if (!isHook) {
-      if (!data[endpoint] || refetchOnMount) {
+      if (!data[interpolatedEndpoint] || refetchOnMount) {
         initFetch()
       }
     }
@@ -246,8 +292,35 @@ const Query = ({
     isMounted.current = true
   }, [])
 
-  return children({
-    data: data[endpoint],
+  const mappedValues = endpoints.flatMap(
+    (endpointValue: string) => data[endpointValue] || [],
+  )
+
+  const queryData = data[interpolatedEndpoint]
+    ? Array.isArray(data[interpolatedEndpoint])
+      ? [...mappedValues]
+      : { ...mappedValues }
+    : undefined
+
+  const setLocalData = (newData: any[] | object) => {
+    const dataReset = endpoints
+      .filter(endpointValue => endpointValue !== interpolatedEndpoint)
+      .reduce(
+        (acc, endpointValue: string) => ({
+          ...acc,
+          [endpointValue]: undefined,
+        }),
+        {},
+      )
+    setData((state: object) => ({
+      ...state,
+      ...dataReset,
+      [interpolatedEndpoint]: newData,
+    }))
+  }
+
+  return {
+    data: queryData,
     error,
     isLoading,
     isLoadingMore,
@@ -255,22 +328,14 @@ const Query = ({
     loadMore,
     query: initFetch,
     refetch,
-    setData: (newData: any[] | object) => {
-      setData((state: object) => ({
-        ...state,
-        [endpoint]: newData,
-      }))
-    },
-  })
+    setData: setLocalData,
+  }
 }
 
-export const useQuery = ({
-  ...args
-}: Pick<Props, Exclude<keyof Props, 'children'>>): Children => {
-  const children = (params: Children) => params
+const Query = ({ children, ...restProps }: Props) => {
+  const args = useQuery({ ...restProps, isHook: false })
 
-  // @ts-ignore
-  return Query({ ...args, children, isHook: true })
+  return children(args)
 }
 
 export default Query
