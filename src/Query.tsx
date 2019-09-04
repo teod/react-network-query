@@ -67,7 +67,9 @@ export const useQuery = ({
     : undefined
 
   const [error, setError] = useState()
-  const [isLoading, setIsLoading] = useState(syncStorageData ? false : true)
+  const [isLoading, setIsLoading] = useState(
+    syncStorageData || data[interpolatedEndpoint] ? false : true,
+  )
   const [isRefetching, setIsRefetching] = useState(false)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [endpoints, setEndpoints] = useState([interpolatedEndpoint])
