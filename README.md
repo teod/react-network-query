@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/react-network-query.svg?style=flat-square)](https://www.npmjs.com/package/react-network-query)
 
-**React Network Query** is a library inspired by [React Apollo](http://dev.apollodata.com/react/). Do you know how React Appolo allows simple declarative React components to make GraphQL requests and save the state? This library does something similar, but for REST calls. Think of it as the React Apollo for REST requests.
+**React Network Query** is a library inspired by [React Apollo](http://dev.apollodata.com/react/). Do you know how React Apollo allows simple declarative React components to make GraphQL requests and save the state? This library does something similar, but for REST calls. Think of it as the React Apollo for REST requests.
 
 It works out of the box for React and ReactDOM.
 
